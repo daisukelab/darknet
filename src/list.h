@@ -7,20 +7,20 @@ typedef struct node{
     struct node *prev;
 } node;
 
-typedef struct list{
+typedef struct darknet_list{
     int size;
     node *front;
     node *back;
-} list;
+} darknet_list;
 
-list *make_list();
-int list_find(list *l, void *val);
+darknet_list *make_list();
+int list_find(darknet_list *l, void *val);
 
-void list_insert(list *, void *);
+void list_insert(darknet_list *, void *);
 
-void **list_to_array(list *l);
+void **list_to_array(darknet_list *l);
 
-void free_list(list *l);
-void free_list_contents(list *l);
+void free_list(darknet_list *l);
+void free_list_contents(darknet_list *l);
 
 #endif

@@ -25,7 +25,7 @@ void train_super(char *cfgfile, char *weightfile)
     data train, buffer;
 
 
-    list *plist = get_paths(train_images);
+    darknet_list *plist = get_paths(train_images);
     //int N = plist->size;
     char **paths = (char **)list_to_array(plist);
 

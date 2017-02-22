@@ -69,8 +69,8 @@ image make_random_image(int w, int h, int c);
 image make_empty_image(int w, int h, int c);
 image float_to_image(int w, int h, int c, float *data);
 image copy_image(image p);
-image load_image(char *filename, int w, int h, int c);
-image load_image_color(char *filename, int w, int h);
+image load_image(const char *filename, int w, int h, int c);
+image load_image_color(const char *filename, int w, int h);
 image **load_alphabet();
 
 float get_pixel(image m, int x, int y, int c);

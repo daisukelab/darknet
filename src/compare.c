@@ -20,7 +20,7 @@ void train_compare(char *cfgfile, char *weightfile)
     }
     printf("Learning Rate: %g, Momentum: %g, Decay: %g\n", net.learning_rate, net.momentum, net.decay);
     int imgs = 1024;
-    list *plist = get_paths("data/compare.train.list");
+    darknet_list *plist = get_paths("data/compare.train.list");
     char **paths = (char **)list_to_array(plist);
     int N = plist->size;
     printf("%d\n", N);
@@ -87,7 +87,7 @@ void validate_compare(char *filename, char *weightfile)
     }
     srand(time(0));
 
-    list *plist = get_paths("data/compare.val.list");
+    darknet_list *plist = get_paths("data/compare.val.list");
     //list *plist = get_paths("data/compare.val.old");
     char **paths = (char **)list_to_array(plist);
     int N = plist->size/2;
@@ -234,7 +234,7 @@ void SortMaster3000(char *filename, char *weightfile)
     srand(time(0));
     set_batch_network(&net, 1);
 
-    list *plist = get_paths("data/compare.sort.list");
+    darknet_list *plist = get_paths("data/compare.sort.list");
     //list *plist = get_paths("data/compare.val.old");
     char **paths = (char **)list_to_array(plist);
     int N = plist->size;
@@ -266,7 +266,7 @@ void BattleRoyaleWithCheese(char *filename, char *weightfile)
     srand(time(0));
     set_batch_network(&net, 1);
 
-    list *plist = get_paths("data/compare.sort.list");
+    darknet_list *plist = get_paths("data/compare.sort.list");
     //list *plist = get_paths("data/compare.small.list");
     //list *plist = get_paths("data/compare.cat.list");
     //list *plist = get_paths("data/compare.val.old");

@@ -40,7 +40,7 @@ void train_captcha(char *cfgfile, char *weightfile)
     int imgs = 1024;
     int i = *net.seen/imgs;
     int solved = 1;
-    list *plist;
+    darknet_list *plist;
     char **labels = get_labels("/data/captcha/reimgs.labels.list");
     if (solved){
         plist = get_paths("/data/captcha/reimgs.solved.list");
@@ -142,7 +142,7 @@ void valid_captcha(char *cfgfile, char *weightfile, char *filename)
     if(weightfile){
         load_weights(&net, weightfile);
     }
-    list *plist = get_paths("/data/captcha/reimgs.fg.list");
+    darknet_list *plist = get_paths("/data/captcha/reimgs.fg.list");
     char **paths = (char **)list_to_array(plist);
     int N = plist->size;
     int outputs = net.outputs;

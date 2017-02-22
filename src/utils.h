@@ -4,6 +4,10 @@
 #include <time.h>
 #include "list.h"
 
+#ifdef OPENCV
+# define HAVE_OPENCV_VIDEOIO
+#endif /* OPENCV */
+
 #define SECRET_NUM -1234
 #define TWO_PI 6.2831853071795864769252866
 
@@ -23,13 +27,13 @@ int write_all_fail(int fd, char *buffer, size_t bytes);
 void find_replace(char *str, char *orig, char *rep, char *output);
 void error(const char *s);
 void malloc_error();
-void file_error(char *s);
+void file_error(const char *s);
 void strip(char *s);
 void strip_char(char *s, char bad);
 void top_k(float *a, int n, int k, int *index);
-list *split_str(char *s, char delim);
+darknet_list *split_str(char *s, char delim);
 char *fgetl(FILE *fp);
-list *parse_csv_line(char *line);
+darknet_list *parse_csv_line(char *line);
 char *copy_string(char *s);
 int count_fields(char *line);
 float *parse_fields(char *line, int n);
