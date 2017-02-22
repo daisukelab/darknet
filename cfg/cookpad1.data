@@ -1,0 +1,5 @@
+classes = 1
+train = train.txt
+valid = validate.txt
+names = ../darknet/data/cookpad1.names
+backup = ./backup
