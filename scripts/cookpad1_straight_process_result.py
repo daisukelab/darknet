@@ -1,4 +1,4 @@
-# Result trimmer
+# Result no trimmer
 # Feb-23, 2017. Free software. @daisukelab
 #
 
@@ -38,15 +38,15 @@ class Entry:
         self.prob = float(elems[1])
         self.x1 = float(elems[2])
         self.y1 = float(elems[3])
-        self.x2 = float(elems[4]) - 1.0
-        self.y2 = float(elems[5]) - 1.0
+        self.x2 = float(elems[4])
+        self.y2 = float(elems[5])
     def __str__(self):
         return '%s,%f,%d,%d,%d,%d' % (self.pathbody, self.prob,
-                                      int(self.x1), int(self.y1),
-                                      int(self.x2), int(self.y2))
+                                      int(self.x1 + 0.5), int(self.y1 + 0.5),
+                                      int(self.x2 + 0.5), int(self.y2 + 0.5))
     def isNotOverlappedBy(self, entries):
         threshOverlap = 0.5
-        threshUncertain = 0.25
+        threshUncertain = 0.5
         if not entries:
             return True
         for another in entries:
@@ -85,17 +85,7 @@ def sortEntries(entries):
 
 def writeEntries(f, entries):
     # trim overlapped
-    slimmed = []
-    for i in range(len(entries)):
-        anothers = entries[:]
-        anothers.pop(i)
-        e = entries[i]
-        if e.isNotOverlappedBy(anothers):
-            slimmed.append(e)
-        else:
-            print 'removed --> ' + str(e)
-    # limit to 15
-    slimmed = sortEntries(slimmed)[:15]
+    slimmed = sortEntries(entries)[:15]
     # write result
     for e in slimmed:
         f.write(str(e) + '\n')
@@ -103,7 +93,7 @@ def writeEntries(f, entries):
 
 # main
 if len(sys.argv) <= 2:
-    exit('usage: python this-scripy.py input-result.txt default-result.csv')
+    exit('usage: python this-scripy.py input-result.txt default-result1.csv default-result2.csv ...')
 infile = sys.argv[1]
 deffiles = sys.argv[2:]
 
