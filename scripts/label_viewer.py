@@ -20,6 +20,29 @@ import operator, math
 import cv2, numpy as np
 
 splitter = re.compile('[, \t\n\r:]+')
+_W = 800
+_H = 800
+
+def fitToRect(image):
+    w = image.shape[1]
+    h = image.shape[0]
+    wph = float(w) / h
+    _WpH = float(_W) / _H
+    print wph, _WpH
+    if _WpH < wph: # portrait
+        w = _W
+        h = int(_H / wph)
+        x = 0
+        y = int((_H - h) / 2)
+    else:
+        w = int(_W * wph)
+        h = _H
+        x = int((_W - w) / 2)
+        y = 0
+    print image.shape, x, y, w, h
+    frame = np.zeros((_H, _W, 3), dtype=np.uint8)
+    frame[y:y+h, x:x+w] = cv2.resize(image, (w, h))
+    return frame
 
 ## opencv to wrap
 class opencv_wrapper:
@@ -65,13 +88,16 @@ cvw = opencv_wrapper()
 class Label:
     def __init__(self, imgename):
         self.imgename = imgename
-    def drawOnImage(self, image, color):
+    def drawOnImage(self, image, color, index):
         cv2.rectangle(image, (self.x, self.y),
                       (self.x + self.w, self.y + self.h), color, 2)
         cv2.putText(image, str(self.cls), (self.x + 3, self.y + self.h - 4),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, color,
                     thickness=2, lineType=cvw.LINE_AA)
-        print self.cls, self.x, self.y, self.w, self.h
+        cv2.putText(image, str(index), (self.x + 3, self.y + 24),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, color,
+                    thickness=2, lineType=cvw.LINE_AA)
+        print 'test: ' + str(self), '=>', self.x, self.y, self.w, self.h
     def readText(self, line, W, H):
         xs = splitter.split(line)
         self.cls = int(xs[0].strip())
@@ -80,9 +106,18 @@ class Label:
         self.y = int((r[1] - r[3]/2) * H)
         self.w = int((r[2]) * W)
         self.h = int((r[3]) * H)
+        self.orgLine = line
+    def setClass(self, cls):
+        self.cls = cls
+    def __str__(self):
+        xs = splitter.split(self.orgLine)
+        xs[0] = str(self.cls)
+        return ' '.join(xs)
 
+def makeLabelfile(imagefile):
+    return imagefile.replace('images/', 'labels/').replace('.jpg', '.txt')
 def loadLabels(imagefile, shape):
-    labelfile = imagefile.replace('images/', 'labels/').replace('.jpg', '.txt')
+    labelfile = makeLabelfile(imagefile)
     with open(labelfile) as f:
         rawlines = f.read().splitlines()
     f.close()
@@ -93,6 +128,12 @@ def loadLabels(imagefile, shape):
         label.readText(l, shape[1], shape[0])
         labels.append(label)
     return labels
+def saveLabels(imagefile, labels):
+    labelfile = makeLabelfile(imagefile)
+    with open(labelfile, 'w') as f:
+        for l in labels:
+            f.write(str(l) + '\n')
+    f.close()
 
 ## viewer model
 def loadImageList(imagelist):
@@ -107,34 +148,51 @@ class Model:
         self.images = []
         self.cur = 0
         self.imagelist = imagelist
+        self.edited = False
     def load(self):
         self.images = loadImageList(self.imagelist)
         self.loadImage()
     def curFile(self):
         return self.images[self.cur]
     def loadImage(self):
+        '''load image and labels'''
         image = cv2.imread(self.curFile())
         if image is None or image.shape[0] == 0:
             print 'Failed to load: ', self.curFile()
         self.labels = loadLabels(self.curFile(), image.shape)
+        self.curLabel = 0
+        self.image = image
+        self.edited = False
         return image
+    def saveLabels(self):
+        # save labels before loading
+        if not self.edited:
+            return
+        saveLabels(self.curFile(), self.labels)
+    def setNextClass(self, cls):
+        self.labels[self.curLabel].setClass(cls)
+        self.curLabel = self.curLabel + 1 \
+                        if self.curLabel < len(self.labels) - 1 else 0
+        self.edited = True
     def getImage(self):
-        self.image = self.loadImage()
+        #self.image = self.loadImage()
         self.dispImage = self.image.copy()
         # bounding rectangle & label
-        for l in self.labels:
-            l.drawOnImage(self.dispImage, (0, 0, 255))
+        for i in range(len(self.labels)):
+            self.labels[i].drawOnImage(self.dispImage, (0, 0, 255), i)
         # filename
         #cv2.putText(self.dispImage, self.curFile(), (5, self.dispImage.shape[0] - 12),
         #            cv2.FONT_HERSHEY_SIMPLEX, 0.4, (150,255,0),
         #            thickness=1, lineType=cvw.LINE_AA)
         return self.dispImage, self.curFile()
     def nextImage(self):
+        self.saveLabels()
         self.cur += 1
         if len(self.images) <= self.cur:
             self.cur = 0
         self.loadImage()
     def prevImage(self):
+        self.saveLabels()
         self.cur -= 1
         if self.cur < 0:
             self.cur = len(self.images) - 1
@@ -144,6 +202,8 @@ class Model:
         filename = './preview-' + p[1]
         cv2.imwrite(filename, self.dispImage)
         print 'Saved ' + filename
+    def __del__(self):
+        self.saveLabels()
 
 ## viewer controller
 mouse_drawing = False
@@ -174,6 +234,8 @@ class ViewController:
             self.model.savePreview()
         elif c == ord('q'):
             result = False
+        elif ord('0') <= c and c <= ord('9'):
+            self.model.setNextClass(c - ord('0'))
         elif c == 27: # ESC
             result = False
         elif c == 82: # UP
@@ -192,7 +254,7 @@ class ViewController:
         return True
     def update(self):
         img, imagefilename = self.model.getImage()
-        cv2.imshow('Preview', img)
+        cv2.imshow('Preview', fitToRect(img))
         cv2.setWindowTitle('Preview', imagefilename)
     def loop(self):
         keepLooping = True
