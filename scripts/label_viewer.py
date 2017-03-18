@@ -185,15 +185,15 @@ class Model:
         #            cv2.FONT_HERSHEY_SIMPLEX, 0.4, (150,255,0),
         #            thickness=1, lineType=cvw.LINE_AA)
         return self.dispImage, self.curFile()
-    def nextImage(self):
+    def nextImage(self, amount=1):
         self.saveLabels()
-        self.cur += 1
+        self.cur += amount
         if len(self.images) <= self.cur:
             self.cur = 0
         self.loadImage()
-    def prevImage(self):
+    def prevImage(self, amount=1):
         self.saveLabels()
-        self.cur -= 1
+        self.cur -= amount
         if self.cur < 0:
             self.cur = len(self.images) - 1
         self.loadImage()
@@ -230,6 +230,10 @@ class ViewController:
             self.model.nextImage()
         elif c == ord('b'):
             self.model.prevImage()
+        elif c == ord('k'):
+            self.model.nextImage(100)
+        elif c == ord('j'):
+            self.model.prevImage(100)
         elif c == ord('s'):
             self.model.savePreview()
         elif c == ord('q'):
